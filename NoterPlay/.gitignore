@@ -1,0 +1,94 @@
+# Xcode
+.DS_Store
+*.pbxuser
+*.mode1v3
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+DerivedData/
+.build/
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+!*.xcodeproj/project.pbxproj
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/xcshareddata/
+*.playground/xcuserdata/
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+
+# Build products
+Build/
+build/
+*.o
+*.d
+*.lo
+*.la
+*.so
+*.dylib
+*.a
+*.bak
+*.link
+*.pyc
+*.swp
+*.swo
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+iOSInjectionProject/
+
+# Other
+*.log
+*.hmap
+*.ipa
+*.app
+*.dSYM
+*.xcarchive
+*.zip
+*.tar
+*.tgz
+*.dmg
+*.pkg
+*.xctest
+*.profraw
+*.profdata
+*.coverage
+*.gcno
+*.gcda
+*.gcov
+*.lcov
+*.memcheck
+*.stackdump
+*.crash
+*.lock
+*.keychain
+*.mobileprovision
+*.pem
+*.p12
+*.cer
+*.csr
+*.crt
+*.der
+*.pub
+*.sig
+*.secrets
+*.env
+.env
+.DS_Store
