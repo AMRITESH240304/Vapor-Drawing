@@ -17,6 +17,7 @@ public func configure(_ app: Application) async throws {
     await app.jwt.keys.add(hmac: HMACKey(stringLiteral: Environment.get("JWT_SECRET") ?? "super-secret-key"), digestAlgorithm: .sha256)
 
     app.migrations.add(User.Migration())
+    app.migrations.add(NotesModel.Migration())
     
     // Run migrations
     if app.environment == .production {
