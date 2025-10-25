@@ -11,7 +11,7 @@ struct ContentView: View {
     @State private var toolPickerShows = true
     var body: some View {
         NavigationStack {
-            NotesListView()
+            RegisterView()
         }
     }
 }

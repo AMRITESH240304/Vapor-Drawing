@@ -28,9 +28,9 @@ class NotesViewModel: ObservableObject {
     }
     
     func updateNoteDrawing(noteId: UUID, drawing: PKDrawing) async {
-            if let index = notes.firstIndex(where: { $0.id == noteId }) {
-                // Convert PKDrawing to strokes array
-                notes[index].strokes = drawing.strokes.map { $0.toDrawingStroke(userId: userId) }
-            }
+        if let index = notes.firstIndex(where: { $0.id == noteId }) {
+            // Convert PKDrawing to strokes array
+            notes[index].strokes = drawing.strokes.map { $0.toDrawingStroke(userId: userId) }
         }
+    }
 }

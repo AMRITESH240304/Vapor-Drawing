@@ -40,6 +40,7 @@ struct NotesListView: View {
                 }
             }
         }
+        .navigationBarBackButtonHidden()
         .navigationTitle("My Notes")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

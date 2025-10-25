@@ -9,10 +9,12 @@ import SwiftUI
 
 @main
 struct NoterPlayApp: App {
+    @StateObject var registerViewModel: RegisterViewModel = RegisterViewModel()
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(.dark)
+                .environmentObject(registerViewModel)
         }
     }
 }
