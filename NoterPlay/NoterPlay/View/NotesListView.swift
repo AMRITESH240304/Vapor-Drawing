@@ -28,7 +28,7 @@ struct NotesListView: View {
                             Text(note.title)
                                 .font(.headline)
                             Text(
-                                note.dateCreated.formatted(
+                                note.createdAt!.formatted(
                                     date: .abbreviated,
                                     time: .shortened
                                 )
@@ -38,6 +38,11 @@ struct NotesListView: View {
                         }
                     }
                 }
+            }
+        }
+        .onAppear(){
+            Task {
+                await viewModel.fetchNotes()
             }
         }
         .navigationBarBackButtonHidden()

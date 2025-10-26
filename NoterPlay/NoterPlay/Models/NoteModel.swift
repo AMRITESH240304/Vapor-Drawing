@@ -11,47 +11,51 @@ import PencilKit
 struct Note: Identifiable, Codable {
     let id: UUID
     let title: String
-    let dateCreated: Date
+    let createdAt: Date?
+    let updatedAt: Date?
     var strokes: [DrawingStroke] = []
     
-    // Convert to dictionary for MongoDB
-    func toMongoDocument() -> [String: Any] {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
+    // Custom initializer for decoding
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        let strokesData = (try? encoder.encode(strokes)) ?? Data()
-        let strokesJSON = (try? JSONSerialization.jsonObject(with: strokesData)) as? [[String: Any]] ?? []
+        // Handle ID as either UUID or String
+        if let uuidString = try? container.decode(String.self, forKey: .id) {
+            guard let uuid = UUID(uuidString: uuidString) else {
+                throw DecodingError.dataCorruptedError(forKey: .id, in: container, debugDescription: "Invalid UUID string")
+            }
+            self.id = uuid
+        } else {
+            self.id = try container.decode(UUID.self, forKey: .id)
+        }
         
-        return [
-            "id": id.uuidString,
-            "title": title,
-            "dateCreated": ISO8601DateFormatter().string(from: dateCreated),
-            "strokes": strokesJSON
-        ]
+        self.title = try container.decode(String.self, forKey: .title)
+        self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        self.strokes = try container.decodeIfPresent([DrawingStroke].self, forKey: .strokes) ?? []
     }
     
-    // Initialize from MongoDB document
-    static func fromMongoDocument(_ doc: [String: Any]) -> Note? {
-        guard let idString = doc["id"] as? String,
-              let id = UUID(uuidString: idString),
-              let title = doc["title"] as? String,
-              let dateString = doc["dateCreated"] as? String,
-              let date = ISO8601DateFormatter().date(from: dateString) else {
-            return nil
-        }
-        
-        var note = Note(id: id, title: title, dateCreated: date)
-        
-        if let strokesArray = doc["strokes"] as? [[String: Any]] {
-            let strokesData = try? JSONSerialization.data(withJSONObject: strokesArray)
-            if let data = strokesData {
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                note.strokes = (try? decoder.decode([DrawingStroke].self, from: data)) ?? []
-            }
-        }
-        
-        return note
+    // Regular initializer for creating new notes
+    init(id: UUID = UUID(), title: String, createdAt: Date? = nil, updatedAt: Date? = nil, strokes: [DrawingStroke] = []) {
+        self.id = id
+        self.title = title
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.strokes = strokes
+    }
+    
+    // Custom encoding - always encode ID as string
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id.uuidString, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+        try container.encode(strokes, forKey: .strokes)
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case id, title, createdAt, updatedAt, strokes
     }
     
     // Convert strokes to PKDrawing for display
@@ -63,3 +67,7 @@ struct Note: Identifiable, Codable {
     }
 }
 
+struct NoteResponse: Codable {
+    let notes: [Note]
+    let total: Int
+}

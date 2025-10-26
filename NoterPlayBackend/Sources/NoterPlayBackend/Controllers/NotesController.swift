@@ -3,6 +3,7 @@ import Fluent
 
 // MARK: - Note Request DTOs
 struct CreateNoteRequest: Content {
+    let id: UUID?
     let title: String
     let strokes: [DrawingStroke]?
 }
@@ -78,6 +79,7 @@ struct NotesController: RouteCollection {
         let createRequest = try req.content.decode(CreateNoteRequest.self)
         
         let note = NotesModel(
+            id: createRequest.id,
             title: createRequest.title,
             strokes: createRequest.strokes ?? [],
             userID: user.id!

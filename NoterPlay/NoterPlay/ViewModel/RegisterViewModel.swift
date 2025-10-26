@@ -59,6 +59,8 @@ class RegisterViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.token = token
                         self.isRegistered = true
+                        let userDefaults = UserDefaults.standard
+                        userDefaults.set(token, forKey: "authToken")
                         self.isLoading = false
                     }
                 case .failure(let error):
