@@ -85,7 +85,7 @@ class NotesViewModel: ObservableObject {
         do {
             // Update local notes first
             if let index = notes.firstIndex(where: { $0.id == noteId }) {
-                notes[index].strokes = drawing.strokes.map { $0.toDrawingStroke(userId: userId) }
+                notes[index].strokes = drawing.strokes.map { $0.toDrawingStroke() }
                 
                 // Create note object for network call
                 let noteToUpdate = notes[index]

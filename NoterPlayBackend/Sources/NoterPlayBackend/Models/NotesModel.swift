@@ -49,14 +49,20 @@ struct DrawingStroke: Codable {
 struct DrawingPoint: Codable {
     let x: Double
     let y: Double
-    let pressure: Double
-    let timestamp: Date
-    
-    init(x: Double, y: Double, pressure: Double = 1.0, timestamp: Date = Date()) {
+    let pressure: Double?
+    let timestamp: Date?
+    let force: Double?
+    let azimuth: Double?
+    let altitude: Double?
+
+    init(x: Double, y: Double, pressure: Double? = 1.0, timestamp: Date? = Date(), force: Double? = nil, azimuth: Double? = nil, altitude: Double? = nil) {
         self.x = x
         self.y = y
         self.pressure = pressure
         self.timestamp = timestamp
+        self.force = force
+        self.azimuth = azimuth
+        self.altitude = altitude
     }
 }
 

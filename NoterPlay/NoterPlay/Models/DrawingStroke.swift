@@ -9,60 +9,19 @@ import Foundation
 import PencilKit
 import UIKit
 
-struct DrawingStroke: Codable, Identifiable {
-    let id: UUID
+struct DrawingStroke: Codable{
     let points: [StrokePoint]
     let color: ColorData
     let width: Double
-    let toolType: String
+//    let toolType: String
     let timestamp: Date
-    let userId: String
+//    let userId: String
     
-    // Standard initializer
-    init(id: UUID, points: [StrokePoint], color: ColorData, width: Double, toolType: String, timestamp: Date, userId: String) {
-        self.id = id
+    init(points: [StrokePoint], color: ColorData, width: Double, timestamp: Date) {
         self.points = points
         self.color = color
         self.width = width
-        self.toolType = toolType
         self.timestamp = timestamp
-        self.userId = userId
-    }
-    
-    // Custom decoder to handle missing fields from server
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        // Handle missing ID - generate new one
-        if let decodedId = try? container.decode(UUID.self, forKey: .id) {
-            self.id = decodedId
-        } else {
-            self.id = UUID()
-        }
-        
-        self.points = try container.decode([StrokePoint].self, forKey: .points)
-        self.color = try container.decode(ColorData.self, forKey: .color)
-        self.width = try container.decode(Double.self, forKey: .width)
-        
-        // Handle missing toolType - default to "pen"
-        if let decodedToolType = try? container.decode(String.self, forKey: .toolType) {
-            self.toolType = decodedToolType
-        } else {
-            self.toolType = "pen"
-        }
-        
-        self.timestamp = try container.decode(Date.self, forKey: .timestamp)
-        
-        // Handle missing userId - generate default
-        if let decodedUserId = try? container.decode(String.self, forKey: .userId) {
-            self.userId = decodedUserId
-        } else {
-            self.userId = "unknown"
-        }
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case id, points, color, width, toolType, timestamp, userId
     }
 }
 
@@ -82,7 +41,7 @@ struct ColorData: Codable {
 }
 
 extension PKStroke {
-    func toDrawingStroke(userId: String) -> DrawingStroke {
+    func toDrawingStroke() -> DrawingStroke {
         let points = self.path.map { point in
             StrokePoint(
                 x: Double(point.location.x),
@@ -97,14 +56,6 @@ extension PKStroke {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         
-        let toolType: String
-        switch self.ink.inkType {
-        case .pen: toolType = "pen"
-        case .pencil: toolType = "pencil"
-        case .marker: toolType = "marker"
-        default: toolType = "pen"
-        }
-        
         let derivedWidth: Double = {
             if let firstPoint = self.path.first {
                 return Double(firstPoint.size.width)
@@ -114,7 +65,6 @@ extension PKStroke {
         }()
         
         return DrawingStroke(
-            id: UUID(),
             points: points,
             color: ColorData(
                 red: Double(red),
@@ -123,9 +73,7 @@ extension PKStroke {
                 alpha: Double(alpha)
             ),
             width: derivedWidth,
-            toolType: toolType,
-            timestamp: Date(),
-            userId: userId
+            timestamp: Date()
         )
     }
 }
@@ -146,13 +94,7 @@ extension DrawingStroke {
         
         let path = PKStrokePath(controlPoints: cgPoints, creationDate: timestamp)
         
-        let inkType: PKInkingTool.InkType
-        switch toolType {
-        case "pen": inkType = .pen
-        case "pencil": inkType = .pencil
-        case "marker": inkType = .marker
-        default: inkType = .pen
-        }
+        let inkType: PKInkingTool.InkType = .pen
         
         let uiColor = UIColor(
             red: CGFloat(color.red),

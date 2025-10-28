@@ -93,20 +93,28 @@ struct NotesController: RouteCollection {
     // MARK: - Get Single Note
     func getNote(req: Request) async throws -> NoteResponse {
         let user = try req.auth.require(User.self)
-        
-        guard let noteID = req.parameters.get("noteID", as: UUID.self) else {
-            throw Abort(.badRequest, reason: "Invalid note ID")
+        do{
+            guard let note = try await NotesModel.query(on: req.db)
+                .filter(\.$id == req.parameters.get("id")!)
+                .filter(\.$user.$id == user.id!)
+                .first()
+            else {
+                throw Abort(.notFound, reason: "Note not found")
+            }
+            print(note)
+            
+            return NoteResponse(from: note)
+        }
+        catch {
+            print(error)
+            throw Abort(.internalServerError, reason: "Failed to update note: \(error.localizedDescription)")
         }
         
-        guard let note = try await NotesModel.query(on: req.db)
-            .filter(\.$id == noteID)
-            .filter(\.$user.$id == user.id!)
-            .first()
-        else {
-            throw Abort(.notFound, reason: "Note not found")
-        }
+        // guard let noteID = req.parameters.get("noteID", as: UUID.self) else {
+        //     throw Abort(.badRequest, reason: "Invalid note ID")
+        // }
         
-        return NoteResponse(from: note)
+        
     }
     
     // MARK: - Update Note
@@ -114,29 +122,37 @@ struct NotesController: RouteCollection {
         let user = try req.auth.require(User.self)
         let updateRequest = try req.content.decode(UpdateNoteRequest.self)
         
-        guard let noteID = req.parameters.get("noteID", as: UUID.self) else {
-            throw Abort(.badRequest, reason: "Invalid note ID")
+        // guard let noteID = req.parameters.get("noteID", as: UUID.self) else {
+        //     // print(noteID)
+        //     throw Abort(.badRequest, reason: "Invalid note ID")
+        // }
+        
+        do {
+            guard let note = try await NotesModel.query(on: req.db)
+                        .filter(\.$id == req.parameters.get("id")!)
+                        .filter(\.$user.$id == user.id!)
+                        .first()
+            else {
+                throw Abort(.notFound, reason: "Note not found")
+            }
+            
+            if let title = updateRequest.title {
+                note.title = title
+            }
+            
+            if let strokes = updateRequest.strokes {
+                note.strokes = strokes
+            }
+            
+            try await note.save(on: req.db)
+            
+            return NoteResponse(from: note)
+        }
+        catch {
+            print(error)
+            throw Abort(.internalServerError, reason: "Failed to update note: \(error.localizedDescription)")
         }
         
-        guard let note = try await NotesModel.query(on: req.db)
-            .filter(\.$id == noteID)
-            .filter(\.$user.$id == user.id!)
-            .first()
-        else {
-            throw Abort(.notFound, reason: "Note not found")
-        }
-        
-        if let title = updateRequest.title {
-            note.title = title
-        }
-        
-        if let strokes = updateRequest.strokes {
-            note.strokes = strokes
-        }
-        
-        try await note.save(on: req.db)
-        
-        return NoteResponse(from: note)
     }
     
     // MARK: - Delete Note
