@@ -57,7 +57,7 @@ struct NotesController: RouteCollection {
         notesRoute.post(use: createNote)
         notesRoute.get(use: getAllNotes)
         notesRoute.get(":id", use: getNote)
-        notesRoute.put(":id", use: updateNote)
+        notesRoute.on(.PUT, ":id", body: .collect(maxSize: "2mb"), use: updateNote)
         notesRoute.delete(":id", use: deleteNote)
     }
 
@@ -101,7 +101,6 @@ struct NotesController: RouteCollection {
             else {
                 throw Abort(.notFound, reason: "Note not found")
             }
-            print(note)
             
             return NoteResponse(from: note)
         }

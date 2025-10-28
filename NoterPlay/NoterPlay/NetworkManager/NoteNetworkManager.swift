@@ -67,26 +67,24 @@ class NoteNetworkManager {
         }
     }
     
-    func updateDrawing(Note: Note,token: String, completion: @escaping (Result<String, Error>) async throws -> Void) async throws {
-        // To be implemented also next work to is make it functional and make a function to retrieve drawing
-        
+    func updateDrawing(Note: Note, token: String, completion: @escaping (Result<String, Error>) async throws -> Void) async throws {
         var request = URLRequest(url: URL(string: NetworkUrls.localHost + "notes/\(Note.id)")!)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
-        request.httpBody = try encoder.encode(Note)
-        
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
+        let encodedData = try encoder.encode(Note)
+
+        let (data, response) = try await URLSession.shared.upload(for: request, from: encodedData)
+
         guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        
+
         if (200...299).contains(httpResponse.statusCode) {
-            print( String(data: data, encoding: .utf8)!)
+            print(String(data: data, encoding: .utf8) ?? "")
             try await completion(.success("Note Updated Successfully"))
         } else {
             if let serverError = try? JSONDecoder().decode(ServerErrorResponse.self, from: data) {
@@ -96,6 +94,7 @@ class NoteNetworkManager {
             }
         }
     }
+
 
     
     func creatNotes(Note:Note, token:String, completion: @escaping (Result<String, Error>) async throws -> Void) async throws {
