@@ -25,5 +25,10 @@ services:
       <<: *shared_environment
     ports:
       - '8080:8080'
+    env_file:
+      - .env.production
+    volumes:
+      - .env.production:/app/.env.production:ro
+      - .env:/app/.env:ro
     # user: '0' # uncomment to run as root for testing purposes even though Dockerfile defines 'vapor' user.
     command: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
