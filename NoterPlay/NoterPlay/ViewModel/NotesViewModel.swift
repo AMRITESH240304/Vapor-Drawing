@@ -53,10 +53,64 @@ class NotesViewModel: ObservableObject {
         }
     }
     
+    func getDrawing(noteID: UUID) async -> PKDrawing? {
+            guard let note = notes.first(where: { $0.id == noteID }) else {
+                print("Note not found with ID: \(noteID)")
+                return nil
+            }
+            
+            return await withCheckedContinuation { continuation in
+                Task {
+                    do {
+                        try await NoteNetworkManager.shared.getNote(note: note, token: UserDefaults.standard.string(forKey: "authToken")!) { result in
+                            switch result {
+                            case .success(let fetchedNote):
+                                print("Drawing fetched for note ID: \(noteID)")
+                                let drawing = fetchedNote.toPKDrawing()
+                                continuation.resume(returning: drawing)
+                            case .failure(let error):
+                                print("Fetch error: \(error.localizedDescription)")
+                                continuation.resume(returning: nil)
+                            }
+                        }
+                    } catch {
+                        print("Network error: \(error)")
+                        continuation.resume(returning: nil)
+                    }
+                }
+            }
+        }
+    
     func updateNoteDrawing(noteId: UUID, drawing: PKDrawing) async {
-        if let index = notes.firstIndex(where: { $0.id == noteId }) {
-            // Convert PKDrawing to strokes array
-            notes[index].strokes = drawing.strokes.map { $0.toDrawingStroke(userId: userId) }
+        do {
+            // Update local notes first
+            if let index = notes.firstIndex(where: { $0.id == noteId }) {
+                notes[index].strokes = drawing.strokes.map { $0.toDrawingStroke(userId: userId) }
+                
+                // Create note object for network call
+                let noteToUpdate = notes[index]
+                print(noteToUpdate)
+                
+                try await NoteNetworkManager.shared.updateDrawing(
+                    Note: noteToUpdate,
+                    token: UserDefaults.standard.string(forKey: "authToken")!
+                ) { result in
+                    switch result {
+                    case .success(let message):
+                        DispatchQueue.main.async {
+                            print("Drawing saved: \(message)")
+                        }
+                    case .failure(let error):
+                        DispatchQueue.main.async {
+                            self.errorMessage = error.localizedDescription
+                            print("Save error: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        } catch {
+            print("Error updating note drawing: \(error)")
+            errorMessage = error.localizedDescription
         }
     }
     

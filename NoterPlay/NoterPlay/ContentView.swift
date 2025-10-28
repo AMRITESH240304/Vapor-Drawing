@@ -11,7 +11,11 @@ struct ContentView: View {
     @State private var toolPickerShows = true
     var body: some View {
         NavigationStack {
-            RegisterView()
+            if UserDefaults.standard.string(forKey: "authToken") != nil {
+                NotesListView()
+            } else {
+                RegisterView()
+            }
         }
     }
 }

@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct NotesListView: View {
+    @Namespace private var namespace
     @StateObject var viewModel = NotesViewModel()
     @State private var showNewNoteAlert = false
     @State private var newNoteTitle = ""
+    @State private var toolPickerVisible = true
+    @State private var canvasCoordinator: CanvasView.Coordinator?
 
     var body: some View {
         VStack {
@@ -18,11 +21,38 @@ struct NotesListView: View {
                 ForEach(viewModel.notes) { note in
                     NavigationLink(
                         destination: CanvasView(
-                            toolPickerShows: .constant(true),
+                            toolPickerShows: $toolPickerVisible,
                             noteId: note.id,
-                            viewModel: viewModel
+                            viewModel: viewModel,
+                            onCoordinatorReady: { coordinator in
+                                canvasCoordinator = coordinator
+                            }
                         )
                         .navigationTitle(note.title)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    toolPickerVisible.toggle()
+                                } label: {
+                                    Image(systemName: toolPickerVisible ? "pencil.circle.fill" : "pencil.circle")
+                                        .font(.title2)
+                                }
+                            }
+                            
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    canvasCoordinator?.saveDrawing()
+                                }
+                                label: {
+                                    // need a save button
+                                    Image(systemName: "square.and.arrow.down")
+                                        .font(.title2)
+                                        
+                                }
+                            }
+                        }
                     ) {
                         VStack(alignment: .leading) {
                             Text(note.title)

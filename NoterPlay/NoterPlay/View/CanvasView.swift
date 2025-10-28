@@ -12,28 +12,40 @@ struct CanvasView: UIViewRepresentable {
     @Binding var toolPickerShows: Bool
     let noteId: UUID
     @ObservedObject var viewModel: NotesViewModel
+    let onCoordinatorReady: ((Coordinator) -> Void)?
     
-    private let canvasView = PKCanvasView()
-    private let toolPicker = PKToolPicker()
-
     func makeUIView(context: Context) -> PKCanvasView {
-        canvasView.drawingPolicy = .anyInput
+        let canvasView = PKCanvasView()
+        let toolPicker = PKToolPicker()
         
+        canvasView.drawingPolicy = .anyInput
         canvasView.delegate = context.coordinator
         
+        Task { @MainActor in
+            if let existingDrawing = await viewModel.getDrawing(noteID: noteId) {
+                canvasView.drawing = existingDrawing
+            }
+        }
+        
+        // Set up tool picker properly
+        canvasView.tool = PKInkingTool(.pen, color: .black, width: 15)
+        
+        // Show tool picker and make canvas first responder
         toolPicker.setVisible(toolPickerShows, forFirstResponder: canvasView)
         toolPicker.addObserver(canvasView)
+        canvasView.becomeFirstResponder()
         
-        if toolPickerShows {
-            canvasView.becomeFirstResponder()
-        }
-
+        // Store references in coordinator
+        context.coordinator.canvasView = canvasView
+        context.coordinator.toolPicker = toolPicker
+        
         return canvasView
     }
 
     func updateUIView(_ canvasView: PKCanvasView, context: Context) {
+        guard let toolPicker = context.coordinator.toolPicker else { return }
+        
         toolPicker.setVisible(toolPickerShows, forFirstResponder: canvasView)
-        toolPicker.addObserver(canvasView)
         
         if toolPickerShows {
             canvasView.becomeFirstResponder()
@@ -43,23 +55,37 @@ struct CanvasView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(noteId: noteId, viewModel: viewModel)
-    }
-    
-    class Coordinator: NSObject, PKCanvasViewDelegate {
-        let noteId: UUID
-        let viewModel: NotesViewModel
-        
-        init(noteId: UUID, viewModel: NotesViewModel) {
-            self.noteId = noteId
-            self.viewModel = viewModel
-        }
-        
-        func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
-            Task { @MainActor in
-                await viewModel.updateNoteDrawing(noteId: noteId, drawing: canvasView.drawing)
-            }
-        }
+        let coordinator = Coordinator(noteId: noteId, viewModel: viewModel)
+        onCoordinatorReady?(coordinator)
+        return coordinator
     }
 }
 
+class Coordinator: NSObject, PKCanvasViewDelegate {
+    let noteId: UUID
+    let viewModel: NotesViewModel
+    var canvasView: PKCanvasView?
+    var toolPicker: PKToolPicker?
+    
+    init(noteId: UUID, viewModel: NotesViewModel) {
+        self.noteId = noteId
+        self.viewModel = viewModel
+    }
+    
+    func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+        // Remove automatic saving - now only manual saves
+        print("Drawing changed")
+    }
+    
+    func saveDrawing() {
+        guard let canvasView = canvasView else {
+            print("Canvas view not available")
+            return
+        }
+        print("Saving drawing...")
+        Task { @MainActor in
+            print(canvasView.drawing)
+            await viewModel.updateNoteDrawing(noteId: noteId, drawing: canvasView.drawing)
+        }
+    }
+}
