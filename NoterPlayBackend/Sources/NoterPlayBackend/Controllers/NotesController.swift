@@ -59,6 +59,23 @@ struct NotesController: RouteCollection {
         notesRoute.get(":id", use: getNote)
         notesRoute.on(.PUT, ":id", body: .collect(maxSize: "2mb"), use: updateNote)
         notesRoute.delete(":id", use: deleteNote)
+        notesRoute.webSocket(":id", onUpgrade: handleNoteWebSocket)
+
+    }
+
+    func handleNoteWebSocket(req: Request, ws: WebSocket) {
+        guard let noteIDString = req.parameters.get("id"),
+            let noteID = UUID(uuidString: noteIDString) else {
+            ws.close(promise: nil)
+            return
+        }
+
+        ws.send("Connected to note \(noteID)")
+        ws.onText { ws, text in
+            ws.send("Echo: we are connected")
+        }
+        ws.onClose.whenComplete { _ in
+        }
     }
 
     func getAllNotes(req: Request) async throws -> NotesListResponse {
