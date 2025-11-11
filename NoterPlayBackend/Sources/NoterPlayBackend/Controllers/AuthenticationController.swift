@@ -11,6 +11,14 @@ struct AuthenticationController: RouteCollection {
 
         let protected = authRoutes.grouped(AuthMiddleware())
         protected.get("me", use: getCurrentUser)
+        protected.webSocket("handleInvite", onUpgrade: handleInvite)
+    }
+
+    func handleInvite(req: Request, ws: WebSocket) async {
+        let user = try! req.auth.require(User.self)
+        let websocketManager = req.application.webSocketManager
+
+        websocketManager.addConnection(webSocket: ws, userID: user.id!)
     }
 
     func register(req: Request) async throws -> AuthResponse {
