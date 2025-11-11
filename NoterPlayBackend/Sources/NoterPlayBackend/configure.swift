@@ -18,6 +18,7 @@ public func configure(_ app: Application) async throws {
 
     app.migrations.add(User.Migration())
     app.migrations.add(NotesModel.Migration())
+    app.webSocketManager = WebSocketManager()
     
     // Run migrations
     if app.environment == .production {
@@ -31,3 +32,24 @@ public func configure(_ app: Application) async throws {
     // register routes
     try routes(app)
 }
+
+extension Application {
+    private struct WebSocketManagerKey: StorageKey {
+        typealias Value = WebSocketManager
+    }
+    var webSocketManager: WebSocketManager {
+        get {
+            if let existing = self.storage[WebSocketManagerKey.self] {
+                return existing
+            } else {
+                let new = WebSocketManager()
+                self.storage[WebSocketManagerKey.self] = new
+                return new
+            }
+        }
+        set {
+            self.storage[WebSocketManagerKey.self] = newValue
+        }
+    }
+}
+

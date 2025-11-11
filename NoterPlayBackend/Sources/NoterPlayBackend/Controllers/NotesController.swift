@@ -70,11 +70,14 @@ struct NotesController: RouteCollection {
             return
         }
 
-        ws.send("Connected to note \(noteID)")
-        ws.onText { ws, text in
-            ws.send("Echo: we are connected")
-        }
+        let websocketManager = req.application.webSocketManager
+
+        websocketManager.addConnection(webSocket: ws, userID: noteID)
+        ws.onText({ ws, text in
+            websocketManager.broadcastMessage(message: "it there")
+        })
         ws.onClose.whenComplete { _ in
+            websocketManager.disConnect(userID: noteID)
         }
     }
 

@@ -32,5 +32,6 @@ func routes(_ app: Application) throws {
         // Register AuthenticationController
         try! api.register(collection: AuthenticationController())
         try! api.register(collection: NotesController())
+        try! api.register(collection: InviteController())
     }
 }
