@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:NoterPlayBackend}",
+            "name": "Debug NoterPlayBackend",
+            "target": "NoterPlayBackend",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug NoterPlayBackend"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:NoterPlayBackend}",
+            "name": "Release NoterPlayBackend",
+            "target": "NoterPlayBackend",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release NoterPlayBackend"
+        }
+    ]
+}

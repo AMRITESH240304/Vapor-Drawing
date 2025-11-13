@@ -56,7 +56,7 @@ struct NotesController: RouteCollection {
 
         notesRoute.post(use: createNote)
         notesRoute.get(use: getAllNotes)
-        notesRoute.get(":id", use: getNote)
+        notesRoute.get("get",":id", use: getNote)
         notesRoute.on(.PUT, ":id", body: .collect(maxSize: "2mb"), use: updateNote)
         notesRoute.delete(":id", use: deleteNote)
         notesRoute.webSocket(":id", onUpgrade: handleNoteWebSocket)
