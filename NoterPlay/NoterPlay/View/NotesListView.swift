@@ -86,6 +86,13 @@ struct NotesListView: View {
                         .font(.title2)
                 }
             }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: NotificationView()) {
+                    Image(systemName: "bell.fill")
+                        .font(.title2)
+                }
+            }
         }
         .alert("New Note", isPresented: $showNewNoteAlert) {
             TextField("Enter note name", text: $newNoteTitle)

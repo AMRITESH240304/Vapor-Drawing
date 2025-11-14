@@ -11,8 +11,7 @@ struct InviteResponse: Content {
     let inviteFrom: UUID
     let inviteTo: UUID
 }
-
-struct PersonalResponse: Content {
+struct SendInvite: Content {
     let email: String
     let message: String
     let wssURL: String
@@ -39,9 +38,14 @@ struct InviteController: RouteCollection {
             let wssURL = "ws://127.0.0.1:8080/api/v1/notes/\(note!.id!)"
             let ws = req.application.webSocketManager
 
-            let personalMessage = PersonalResponse(email: user.email, message: "Invite you collaborate on Vapor drawing", wssURL: wssURL)
+            let personalMessage = SendInvite(email: user.email, message: "Invite you collaborate on Vapor drawing", wssURL: wssURL)
 
-            ws.sendPersonalMessage(userID: findEmail!.id!, message: "\(personalMessage)")
+            let encoder = JSONEncoder()
+
+            if let jsonData = try? encoder.encode(personalMessage),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                ws.sendPersonalMessage(userID: findEmail!.id!, message: jsonString)
+            }
 
             let createInvite = InviteModel(
                 wssURL: wssURL,

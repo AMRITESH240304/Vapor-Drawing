@@ -6,8 +6,9 @@
             "args": [],
             "cwd": "${workspaceFolder:NoterPlay}/NoterPlayBackend",
             "name": "Debug NoterPlayBackend (NoterPlayBackend)",
-            "program": "${workspaceFolder:NoterPlay}/NoterPlayBackend/.build/debug/NoterPlayBackend",
-            "preLaunchTask": "swift: Build Debug NoterPlayBackend (NoterPlayBackend)"
+            "preLaunchTask": "swift: Build Debug NoterPlayBackend (NoterPlayBackend)",
+            "target": "NoterPlayBackend",
+            "configuration": "debug"
         },
         {
             "type": "swift",
@@ -15,8 +16,9 @@
             "args": [],
             "cwd": "${workspaceFolder:NoterPlay}/NoterPlayBackend",
             "name": "Release NoterPlayBackend (NoterPlayBackend)",
-            "program": "${workspaceFolder:NoterPlay}/NoterPlayBackend/.build/release/NoterPlayBackend",
-            "preLaunchTask": "swift: Build Release NoterPlayBackend (NoterPlayBackend)"
+            "preLaunchTask": "swift: Build Release NoterPlayBackend (NoterPlayBackend)",
+            "target": "NoterPlayBackend",
+            "configuration": "release"
         }
     ]
 }

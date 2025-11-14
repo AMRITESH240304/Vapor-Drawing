@@ -8,11 +8,32 @@
 import SwiftUI
 
 struct NotificationView: View {
+    @StateObject private var viewModel = NotificationViewModel()
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            if viewModel.message.isEmpty {
+                Text("No notifications yet")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(viewModel.message, id: \.wssURL) { invite in
+                            Text(invite.message)
+                        }
+                    }
+                    .padding()
+                }
+            }
+        }
+        .onAppear {
+            viewModel.getInviteFromWs()
+        }
     }
 }
 
+
 #Preview {
-    NotificationView()
+//    NotificationView(viewModel:NotificationViewModel())
 }

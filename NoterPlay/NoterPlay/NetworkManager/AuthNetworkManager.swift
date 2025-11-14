@@ -16,7 +16,7 @@ final class AuthNetworkManager {
         
         let parameter = RegisterRequest(email: email, password: password)
         
-        var request = URLRequest(url: URL(string: NetworkUrls.localHost + "auth/register")!)
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "auth/register")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(parameter)
@@ -46,7 +46,7 @@ final class AuthNetworkManager {
     func loginUser(email:String, password:String, completion: @escaping (Result<String, Error>) async throws -> Void) async throws {
         let parameter = RegisterRequest(email: email, password: password)
         
-        var request = URLRequest(url: URL(string: NetworkUrls.localHost + "auth/login")!)
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "auth/login")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(parameter)

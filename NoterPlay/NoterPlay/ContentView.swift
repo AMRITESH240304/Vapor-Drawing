@@ -8,15 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var notification = NotificationViewModel()
     @State private var toolPickerShows = true
     var body: some View {
         NavigationStack {
-            if UserDefaults.standard.string(forKey: "authToken") != nil {
-                NotesListView()
-            } else {
-                RegisterView()
-            }
+            RegisterView()
         }
+        .environmentObject(notification)
     }
 }
 

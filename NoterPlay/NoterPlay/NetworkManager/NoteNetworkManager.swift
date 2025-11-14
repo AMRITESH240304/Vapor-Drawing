@@ -13,7 +13,7 @@ class NoteNetworkManager {
     
     func getAllUserNotes(token:String,completetion: @escaping (Result<NoteResponse, Error>) async throws -> Void) async throws {
         
-        var request = URLRequest(url: URL(string: NetworkUrls.localHost + "notes")!)
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "notes")!)
         
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -40,7 +40,7 @@ class NoteNetworkManager {
     }
     
     func getNote(note:Note, token:String, completion: @escaping (Result<Note, Error>) async throws -> Void) async throws {
-        var request = URLRequest(url: URL(string: NetworkUrls.localHost + "notes/\(note.id)")!)
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "notes/get/\(note.id)")!)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -68,7 +68,7 @@ class NoteNetworkManager {
     }
     
     func updateDrawing(Note: Note, token: String, completion: @escaping (Result<String, Error>) async throws -> Void) async throws {
-        var request = URLRequest(url: URL(string: NetworkUrls.localHost + "notes/\(Note.id)")!)
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "notes/\(Note.id)")!)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -99,7 +99,7 @@ class NoteNetworkManager {
     
     func creatNotes(Note:Note, token:String, completion: @escaping (Result<String, Error>) async throws -> Void) async throws {
         
-        var request = URLRequest(url: URL(string: NetworkUrls.localHost + "notes")!)
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "notes")!)
         
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

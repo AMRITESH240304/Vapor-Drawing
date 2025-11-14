@@ -23,3 +23,10 @@ struct RegisterResponse: Codable {
     let user: UserResponse
     let token: String
 }
+
+nonisolated
+struct InviteResponse: Codable {
+    let email: String
+    let message: String
+    let wssURL: String
+}

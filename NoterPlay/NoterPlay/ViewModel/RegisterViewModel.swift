@@ -62,6 +62,7 @@ class RegisterViewModel: ObservableObject {
                         let userDefaults = UserDefaults.standard
                         userDefaults.set(token, forKey: "authToken")
                         self.isLoading = false
+                        WS.shared.start()
                     }
                 case .failure(let error):
                     DispatchQueue.main.async {
