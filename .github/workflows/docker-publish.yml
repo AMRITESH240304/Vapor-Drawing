@@ -29,3 +29,7 @@ jobs:
           file: ./NoterPlayBackend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/noterplay-backend:latest
+
+      - name: Trigger Render Deploy Hook
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
