@@ -23,6 +23,10 @@ func routes(_ app: Application) throws {
         "It works!"
     }
 
+    app.get("test","github") { req async -> String in
+        "github action works!"
+    }
+
     app.get("hello", ":num") { req async -> String in
         let name = req.parameters.get("num")!
         return "Hello, \(name)!"
