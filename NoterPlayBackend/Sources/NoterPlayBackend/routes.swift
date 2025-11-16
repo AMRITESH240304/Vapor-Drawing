@@ -24,7 +24,7 @@ func routes(_ app: Application) throws {
     }
 
     app.get("test","github") { req async -> String in
-        "github action works!"
+        "yes it works github action"
     }
 
     app.get("hello", ":num") { req async -> String in
