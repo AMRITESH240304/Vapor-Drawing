@@ -48,16 +48,11 @@ class WS: ObservableObject{
                     print("Received text: \(text)")
                     
                     if let jsonData = text.data(using: .utf8) {
-                        do {
-                            let decoder = JSONDecoder()
-                            if let personalResponse = try? decoder.decode(InviteResponse.self, from: jsonData) {
-                                DispatchQueue.main.async { [weak self] in
-                                    self?.invitePublisher.send(personalResponse)
-                                }
+                        let decoder = JSONDecoder()
+                        if let personalResponse = try? decoder.decode(InviteResponse.self, from: jsonData) {
+                            DispatchQueue.main.async { [weak self] in
+                                self?.invitePublisher.send(personalResponse)
                             }
-                        }
-                        catch {
-                            print("Failed to decode JSON: \(error)")
                         }
                     }
                 @unknown default:
