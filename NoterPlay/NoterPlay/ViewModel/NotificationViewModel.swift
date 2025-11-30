@@ -13,6 +13,10 @@ class NotificationViewModel: ObservableObject {
     private let webSocket = WS.shared
     private var cancellables = Set<AnyCancellable>()
     
+    init() {
+        getInviteFromWs()
+    }
+    
     func getInviteFromWs() {
         webSocket.invitePublisher
             .receive(on: DispatchQueue.main)

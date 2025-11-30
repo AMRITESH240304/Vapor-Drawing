@@ -10,6 +10,7 @@ import SwiftUI
 struct NotesListView: View {
     @Namespace private var namespace
     @StateObject var viewModel = NotesViewModel()
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
     @State private var showNewNoteAlert = false
     @State private var newNoteTitle = ""
     @State private var toolPickerVisible = true
@@ -89,8 +90,18 @@ struct NotesListView: View {
             
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(destination: NotificationView()) {
-                    Image(systemName: "bell.fill")
-                        .font(.title2)
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell.fill")
+                            .font(.title2)
+
+                        Text("\(notificationViewModel.message.count)")
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                            .padding(4)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .offset(x: 8, y: -8)
+                    }
                 }
             }
         }

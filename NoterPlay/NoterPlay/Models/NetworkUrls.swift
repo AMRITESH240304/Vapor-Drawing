@@ -9,9 +9,9 @@ import Foundation
 
 struct NetworkUrls {
     static let baseUrl = ""
-    static let production = "https://noterplay-backend-latest.onrender.com/api/v1/"
-    static let localHost = "https://noterplay-backend-latest.onrender.com/api/v1/"
-    static let wsURL = "wss://noterplay-backend-latest.onrender.com/api/v1/auth/handleInvite"
+    static let production = "http://127.0.0.1:8080/api/v1/"
+    static let localHost = "http://127.0.0.1:8080/api/v1/"
+    static let wsURL = "ws://127.0.0.1:8080/api/v1/auth/handleInvite"
 }
 
 struct ServerErrorResponse: Codable {
