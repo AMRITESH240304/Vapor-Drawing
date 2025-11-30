@@ -15,6 +15,8 @@ struct NotesListView: View {
     @State private var newNoteTitle = ""
     @State private var toolPickerVisible = true
     @State private var canvasCoordinator: CanvasView.Coordinator?
+    @State private var showInviteSheet = false
+    @State private var inviteEmail = ""
 
     var body: some View {
         VStack {
@@ -51,6 +53,15 @@ struct NotesListView: View {
                                     Image(systemName: "square.and.arrow.down")
                                         .font(.title2)
                                         
+                                }
+                            }
+                            
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button {
+                                    showInviteSheet = true
+                                } label: {
+                                    Image(systemName: "person.crop.circle.badge.plus")
+                                        .font(.title2)
                                 }
                             }
                         }
@@ -120,6 +131,41 @@ struct NotesListView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Enter a name for your new note.")
+        }
+        .sheet(isPresented: $showInviteSheet) {
+            VStack(spacing: 20) {
+                Text("Invite User")
+                    .font(.title2)
+                    .bold()
+
+                TextField("Email address", text: $inviteEmail)
+                    .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .padding()
+
+                Button("Send Invite") {
+                    showInviteSheet = false
+                    Task{
+                        await canvasCoordinator?.inviteUser(to: inviteEmail)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button("Cancel", role: .cancel) {
+                    showInviteSheet = false
+                }
+                .padding(.top)
+                
+                Spacer()
+            }
+            .padding()
+            .onAppear {
+                toolPickerVisible = false
+            }
+            .onDisappear {
+                toolPickerVisible = true
+            }
         }
     }
 }

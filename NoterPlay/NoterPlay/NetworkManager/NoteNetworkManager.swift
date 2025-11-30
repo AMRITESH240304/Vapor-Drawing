@@ -123,6 +123,32 @@ class NoteNetworkManager {
                 throw NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred"])
             }
         }
-
+    }
+    
+    func inviteUserToNote(_ item: SendInviteRequest,token: String, completion: @escaping (Result<InviteResponse, Error>) async throws -> Void) async throws {
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "invite")!)
+        
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        request.httpBody = try JSONEncoder().encode(item)
+        
+        let (data, response) = try await URLSession.shared.data(for:request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        
+        if (200...299).contains(httpResponse.statusCode) {
+            print( String(data: data, encoding: .utf8)!)
+            let inviteResponse = try JSONDecoder().decode(InviteResponse.self, from: data)
+            try await completion(.success(inviteResponse))
+        } else {
+            if let serverError = try? JSONDecoder().decode(ServerErrorResponse.self, from: data) {
+                throw NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: serverError.reason])
+            } else {
+                throw NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred"])
+            }
+        }
     }
 }

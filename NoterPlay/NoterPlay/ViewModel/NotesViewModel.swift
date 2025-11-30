@@ -17,6 +17,27 @@ class NotesViewModel: ObservableObject {
     @Published var errorMessage: String?
     let userId: String = UUID().uuidString
     
+    func sendInvite(_ item: SendInviteRequest) async {
+        do {
+            try await NoteNetworkManager.shared.inviteUserToNote(item, token: UserDefaults.standard.string(forKey: "authToken")!){ result in
+                
+                switch result {
+                case .success(let message):
+                    DispatchQueue.main.async {
+                        print(message)
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self.errorMessage = error.localizedDescription
+                    }
+                }
+            }
+        }
+        catch {
+            print("Error sending invite: \(error)")
+        }
+    }
+    
     func addNote(title: String) async {
         isLoading = true
         errorMessage = nil

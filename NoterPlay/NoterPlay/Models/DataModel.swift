@@ -30,3 +30,8 @@ struct InviteResponse: Codable {
     let message: String
     let wssURL: String
 }
+
+struct SendInviteRequest: Codable {
+    let email: String
+    let noteID: UUID
+}
