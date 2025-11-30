@@ -12,6 +12,9 @@ final class NotesModel:Model,Content, @unchecked Sendable {
 
     @Field(key: "strokes")
     var strokes: [DrawingStroke]
+
+    @Field(key: "share_tokens")
+    var shareTokens: [String]
     
     @Parent(key: "user_id")
     var user: User
@@ -22,13 +25,16 @@ final class NotesModel:Model,Content, @unchecked Sendable {
     @Timestamp(key: "updated_at", on: .update)
     var updatedAt: Date?
     
-    init() { }
+    init() {
+        self.shareTokens = []
+    }
     
     init(id: UUID? = nil, title: String, strokes: [DrawingStroke] = [], userID: UUID) {
         self.id = id
         self.title = title
         self.strokes = strokes
         self.$user.id = userID
+        self.shareTokens = shareTokens
     }
 }
 

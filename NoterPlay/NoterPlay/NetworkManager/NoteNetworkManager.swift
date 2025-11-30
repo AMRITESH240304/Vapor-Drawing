@@ -125,6 +125,34 @@ class NoteNetworkManager {
         }
     }
     
+    func getSharedNote(_ shareToken: String, completion: @escaping (Result<Note, Error>) async throws -> Void) async throws {
+        var request = URLRequest(url: URL(string: NetworkUrls.production + "notes/shared/\(shareToken)")!)
+        
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        print( String(data: data, encoding: .utf8)!)
+        
+        if (200...299).contains(httpResponse.statusCode) {
+            print( String(data: data, encoding: .utf8)!)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let note = try decoder.decode(Note.self, from: data)
+            try await completion(.success(note))
+        } else {
+            if let serverError = try? JSONDecoder().decode(ServerErrorResponse.self, from: data) {
+                throw NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: serverError.reason])
+            } else {
+                throw NSError(domain: "", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred"])
+            }
+        }
+    }
+    
     func inviteUserToNote(_ item: SendInviteRequest,token: String, completion: @escaping (Result<InviteResponse, Error>) async throws -> Void) async throws {
         var request = URLRequest(url: URL(string: NetworkUrls.production + "invite")!)
         

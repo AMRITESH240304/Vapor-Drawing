@@ -25,10 +25,19 @@ struct RegisterResponse: Codable {
 }
 
 nonisolated
-struct InviteResponse: Codable {
+struct InviteResponse: Codable, Identifiable {
+    let id = UUID()
     let email: String
-    let message: String
     let wssURL: String
+    let shareToken: String
+    let message: String
+    
+    enum CodingKeys: String, CodingKey {
+        case email
+        case wssURL
+        case shareToken
+        case message
+    }
 }
 
 struct SendInviteRequest: Codable {

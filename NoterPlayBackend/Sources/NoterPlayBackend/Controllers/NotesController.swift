@@ -61,6 +61,8 @@ struct NotesController: RouteCollection {
         notesRoute.delete(":id", use: deleteNote)
         notesRoute.webSocket(":id", onUpgrade: handleNoteWebSocket)
 
+        let sharedRoute = routes.grouped("notes","shared")
+        sharedRoute.get(":shareToken", use: getSharedNote)
     }
 
     func handleNoteWebSocket(req: Request, ws: WebSocket) {
@@ -80,6 +82,22 @@ struct NotesController: RouteCollection {
             websocketManager.disConnect(userID: noteID)
         }
     }
+
+    func getSharedNote(req: Request) async throws -> NoteResponse {
+        guard let shareToken = req.parameters.get("shareToken") else {
+            throw Abort(.badRequest, reason: "Invalid share token")
+        }
+
+        let payload = try await req.jwt.verify(shareToken, as: ShareTokenPayload.self)
+        guard let note = try await NotesModel.query(on: req.db)
+            .filter(\.$id == payload.noteID)
+            .first()
+        else {
+            throw Abort(.notFound, reason: "Note not found")
+        }
+
+        return NoteResponse(from: note)
+    } 
 
     func getAllNotes(req: Request) async throws -> NotesListResponse {
         let user = try req.auth.require(User.self)
