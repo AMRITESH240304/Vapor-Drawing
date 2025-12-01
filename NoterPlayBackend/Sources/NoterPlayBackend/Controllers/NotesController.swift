@@ -59,7 +59,7 @@ struct NotesController: RouteCollection {
         notesRoute.get("get",":id", use: getNote)
         notesRoute.on(.PUT, ":id", body: .collect(maxSize: "2mb"), use: updateNote)
         notesRoute.delete(":id", use: deleteNote)
-        notesRoute.webSocket(":id", onUpgrade: handleNoteWebSocket)
+        // notesRoute.webSocket(":id", onUpgrade: handleNoteWebSocket)
 
         let sharedRoute = routes.grouped("notes","shared")
         sharedRoute.get(":shareToken", use: getSharedNote)

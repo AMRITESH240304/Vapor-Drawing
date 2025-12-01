@@ -2,6 +2,13 @@ import Vapor
 import Fluent
 import JWT
 
+struct WebSocketMessage: Codable {
+    let type: String // "joinNote", "leaveNote", "noteUpdate", "invite"
+    let noteID: UUID?
+    let payload: String?
+}
+
+
 struct AuthenticationController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
         let authRoutes = routes.grouped("auth")
@@ -14,11 +21,42 @@ struct AuthenticationController: RouteCollection {
         protected.webSocket("handleInvite", onUpgrade: handleInvite)
     }
 
-    func handleInvite(req: Request, ws: WebSocket) async {
+    func handleInvite(req: Request, ws: WebSocket) {
         let user = try! req.auth.require(User.self)
         let websocketManager = req.application.webSocketManager
 
         websocketManager.addConnection(webSocket: ws, userID: user.id!)
+        
+        ws.onText { ws, text in
+            // Handle incoming messages (e.g., note updates, join/leave note sessions)
+            if let data = text.data(using: .utf8),
+            let message = try? JSONDecoder().decode(WebSocketMessage.self, from: data) {
+                
+                switch message.type {
+                case "joinNote":
+                    print("joinNote received for noteID: \(String(describing: message.noteID))")
+                    if let noteID = message.noteID {
+                        websocketManager.joinNoteSession(noteID: noteID, userID: user.id!)
+                    }
+                case "leaveNote":
+                    print("leaveNote received for noteID: \(String(describing: message.noteID))")
+                    if let noteID = message.noteID {
+                        websocketManager.leaveNoteSession(noteID: noteID, userID: user.id!)
+                    }
+                case "noteUpdate":
+                    print("noteUpdate received for noteID: \(String(describing: message.noteID))")
+                    if let noteID = message.noteID {
+                        websocketManager.broadcastToNote(noteID: noteID, message: text, excludeUserID: user.id!)
+                    }
+                default:
+                    break
+                }
+            }
+        }
+        
+        ws.onClose.whenComplete { _ in
+            websocketManager.disConnect(userID: user.id!)
+        }
     }
 
     func register(req: Request) async throws -> AuthResponse {
