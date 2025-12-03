@@ -125,18 +125,22 @@ struct SharedDrawingView: View {
         cancellable = WS.shared.noteUpdatePublisher
             .filter { $0.noteID == noteID }
             .sink { message in
-                guard message.type == "noteUpdate",
-                      let payload = message.payload,
-                      let data = Data(base64Encoded: payload) else {
-                    return
-                }
+//                guard let self = self else { return }
                 
-                do {
-                    let updatedDrawing = try PKDrawing(data: data)
-                    drawing = updatedDrawing
-                    print("✅ Received drawing update via WebSocket")
-                } catch {
-                    print("❌ Failed to decode drawing: \(error)")
+                if message.type == "strokeUpdate",
+                   let payload = message.payload,
+                   let jsonData = payload.data(using: .utf8),
+                   let drawingStroke = try? JSONDecoder().decode(DrawingStroke.self, from: jsonData),
+                   let pkStroke = drawingStroke.toPKStroke() {
+                    
+                    print("✅ Received complete stroke with \(drawingStroke.points.count) points")
+                    
+                    // Apply to drawing without triggering sendStrokeUpdate
+                    DispatchQueue.main.async {
+                        var mutableDrawing = self.drawing
+                        mutableDrawing.strokes.append(pkStroke)
+                        self.drawing = mutableDrawing
+                    }
                 }
             }
     }
@@ -161,9 +165,12 @@ struct SharedCanvasView: UIViewRepresentable {
     }
     
     func updateUIView(_ canvasView: PKCanvasView, context: Context) {
+        context.coordinator.isReceivingRemoteUpdate = true
         if canvasView.drawing != drawing {
             canvasView.drawing = drawing
         }
+        context.coordinator.lastStrokeCount = drawing.strokes.count
+        context.coordinator.isReceivingRemoteUpdate = false
     }
     
     func makeCoordinator() -> Coordinator {
@@ -173,22 +180,49 @@ struct SharedCanvasView: UIViewRepresentable {
     class Coordinator: NSObject, PKCanvasViewDelegate {
         @Binding var drawing: PKDrawing
         let noteID: UUID
+        var lastStrokeCount = 0
+        var isReceivingRemoteUpdate = false
         
         init(drawing: Binding<PKDrawing>, noteID: UUID) {
             _drawing = drawing
             self.noteID = noteID
+            super.init()
+            self.lastStrokeCount = drawing.wrappedValue.strokes.count
         }
         
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+            // Don't send updates if we're receiving remote changes
+            if isReceivingRemoteUpdate {
+                return
+            }
+            
             drawing = canvasView.drawing
             
-            // Send update via WebSocket
-            let data = canvasView.drawing.dataRepresentation()
-            let base64 = data.base64EncodedString()
-
-            WS.shared.sendNoteUpdate(noteID: noteID, base64DrawingPayload: base64)
-            print("📤 Sent drawing update via WebSocket")
-
+            let currentStrokes = canvasView.drawing.strokes
+            
+            // Only send when a NEW complete stroke is added (count increases)
+            if currentStrokes.count > lastStrokeCount {
+                // Get all new strokes since last count
+                let newStrokes = currentStrokes.suffix(currentStrokes.count - lastStrokeCount)
+                
+                for newPKStroke in newStrokes {
+                    let drawingStroke = newPKStroke.toDrawingStroke()
+                    WS.shared.sendStrokeUpdate(noteID: noteID, stroke: drawingStroke)
+                    print("📤 Sent complete stroke with \(drawingStroke.points.count) points")
+                }
+                
+                lastStrokeCount = currentStrokes.count
+            }
+        }
+        
+        func applyRemoteStroke(_ stroke: PKStroke, to canvasView: PKCanvasView) {
+            isReceivingRemoteUpdate = true
+            var mutableDrawing = canvasView.drawing
+            mutableDrawing.strokes.append(stroke)
+            canvasView.drawing = mutableDrawing
+            drawing = mutableDrawing
+            lastStrokeCount = mutableDrawing.strokes.count
+            isReceivingRemoteUpdate = false
         }
     }
 }
@@ -205,5 +239,16 @@ struct PKCanvasViewRepresentable: UIViewRepresentable {
     
     func updateUIView(_ canvasView: PKCanvasView, context: Context) {
         canvasView.drawing = drawing
+    }
+}
+
+
+extension WS {
+    func sendStrokeUpdate(noteID: UUID, stroke: DrawingStroke) {
+        if let jsonData = try? JSONEncoder().encode(stroke),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            let msg = WebSocketMessage(type: "strokeUpdate", noteID: noteID, payload: jsonString)
+            sendMessage(msg)
+        }
     }
 }
