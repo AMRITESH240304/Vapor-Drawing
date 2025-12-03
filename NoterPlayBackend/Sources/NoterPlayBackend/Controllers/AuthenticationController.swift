@@ -43,6 +43,12 @@ struct AuthenticationController: RouteCollection {
                     if let noteID = message.noteID {
                         websocketManager.leaveNoteSession(noteID: noteID, userID: user.id!)
                     }
+                case "strokeUpdate":
+                    print("strokeUpdate received for noteID: \(String(describing: message.noteID))")
+                    print("Payload: \(String(describing: message.payload))")
+                    if let noteID = message.noteID {
+                        websocketManager.broadcastToNote(noteID: noteID, message: text, excludeUserID: user.id!)
+                    }
                 case "noteUpdate":
                     print("noteUpdate received for noteID: \(String(describing: message.noteID))")
                     if let noteID = message.noteID {
