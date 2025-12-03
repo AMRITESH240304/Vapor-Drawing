@@ -50,7 +50,7 @@ struct NotificationView: View {
 struct SharedDrawingView: View {
     let shareToken: String
     let wssURL: String
-    @StateObject private var viewModel = NotificationViewModel()
+    @EnvironmentObject private var viewModel: NotificationViewModel
     @State private var drawing: PKDrawing?
     @State private var isLoading = true
     

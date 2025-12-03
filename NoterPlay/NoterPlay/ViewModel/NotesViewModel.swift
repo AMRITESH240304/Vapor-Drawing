@@ -16,25 +16,34 @@ class NotesViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     let userId: String = UUID().uuidString
+    @Published var shareTokenAvailable: Bool = false
     
-    func sendInvite(_ item: SendInviteRequest) async {
+    func sendInvite(_ item: SendInviteRequest) async -> InviteResponse? {
         do {
-            try await NoteNetworkManager.shared.inviteUserToNote(item, token: UserDefaults.standard.string(forKey: "authToken")!){ result in
-                
-                switch result {
-                case .success(let message):
-                    DispatchQueue.main.async {
-                        print(message)
-                    }
-                case .failure(let error):
-                    DispatchQueue.main.async {
-                        self.errorMessage = error.localizedDescription
+            return try await withCheckedThrowingContinuation { continuation in
+                Task {
+                    do {
+                        try await NoteNetworkManager.shared.inviteUserToNote(item, token: UserDefaults.standard.string(forKey: "authToken")!){ result in
+                            switch result {
+                            case .success(let response):
+                                print("✅ Invite sent successfully")
+                                print(response)
+                                continuation.resume(returning: response)
+                            case .failure(let error):
+                                print("❌ Invite error: \(error.localizedDescription)")
+                                continuation.resume(throwing: error)
+                            }
+                        }
+                    } catch {
+                        print("❌ Network error: \(error)")
+                        continuation.resume(throwing: error)
                     }
                 }
             }
-        }
-        catch {
+        } catch {
             print("Error sending invite: \(error)")
+            errorMessage = error.localizedDescription
+            return nil
         }
     }
     

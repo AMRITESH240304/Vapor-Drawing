@@ -89,7 +89,7 @@ class Coordinator: NSObject, PKCanvasViewDelegate {
         }
     }
     
-    func inviteUser(to email: String) async {
-        await viewModel.sendInvite(SendInviteRequest(email: email, noteID: noteId))
+    func inviteUser(to email: String) async -> InviteResponse? {
+        return await viewModel.sendInvite(SendInviteRequest(email: email, noteID: noteId))
     }
 }

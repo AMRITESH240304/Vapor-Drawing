@@ -17,6 +17,8 @@ struct NotesListView: View {
     @State private var canvasCoordinator: CanvasView.Coordinator?
     @State private var showInviteSheet = false
     @State private var inviteEmail = ""
+    @State private var selectedInvite: InviteResponse?
+    @State private var navigateToSharedDrawing = false
 
     var body: some View {
         VStack {
@@ -145,9 +147,13 @@ struct NotesListView: View {
                     .padding()
 
                 Button("Send Invite") {
-                    showInviteSheet = false
-                    Task{
-                        await canvasCoordinator?.inviteUser(to: inviteEmail)
+                    Task {
+                        if let response = await canvasCoordinator?.inviteUser(to: inviteEmail) {
+                            selectedInvite = response
+                            showInviteSheet = false
+                            try? await Task.sleep(nanoseconds: 100_000_000)
+                            navigateToSharedDrawing = true
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -166,6 +172,9 @@ struct NotesListView: View {
             .onDisappear {
                 toolPickerVisible = true
             }
+        }
+        .navigationDestination(item: $selectedInvite) { invite in
+            SharedDrawingView(shareToken: invite.shareToken, wssURL: invite.wssURL)
         }
     }
 }
